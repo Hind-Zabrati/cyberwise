@@ -49,36 +49,85 @@
        {{-- FORMATEUR --}}
 @elseif($user->role === 'formateur')
     <div class="bg-white p-6 rounded shadow mb-6">
-        <h2 class="text-2xl font-bold mb-4">Bienvenue Formateur {{ $user->name }} !</h2>
-        <p class="mb-4 text-gray-700">Voici un aperçu de votre activité :</p>
+        <h2 class="text-2xl font-bold mb-4">Bienvenue Formateur {{ $user->name }}</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-gray-50 p-4 rounded shadow">
-                <h3 class="text-lg font-semibold mb-2">Vos cours</h3>
-                @if($formateurCourses && count($formateurCourses))
-                    <ul class="list-disc list-inside text-sm">
-                        @foreach($formateurCourses as $course)
-                            <li>{{ $course->title }}</li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="text-gray-500">Aucun cours pour le moment.</p>
-                @endif
-            </div>
-
-            <div class="bg-gray-50 p-4 rounded shadow">
-                <h3 class="text-lg font-semibold mb-2">Quiz à corriger</h3>
-                @if($quizzesToCorrect && count($quizzesToCorrect))
-                    <ul class="list-disc list-inside text-sm">
-                        @foreach($quizzesToCorrect as $quiz)
-                            <li>{{ $quiz->title }} ({{ $quiz->submitted_count }} soumissions)</li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="text-gray-500">Aucun quiz à corriger.</p>
-                @endif
-            </div>
+        <div class="flex justify-end mb-4">
+            <a href="{{ route('formateur.courses.create') }}"
+               class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                ➕ Créer un cours
+            </a>
         </div>
+
+        @forelse ($formateurCourses as $course)
+            <div class="border p-4 rounded mb-6 bg-gray-50">
+                <h3 class="text-lg font-semibold mb-1">{{ $course->title }}</h3>
+                <p class="text-sm text-gray-600 mb-2">{{ $course->description }}</p>
+
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <a href="{{ route('formateur.courses.edit', $course) }}"
+                       class="text-blue-600 hover:underline">✏️ Modifier</a>
+                    <form action="{{ route('formateur.courses.destroy', $course) }}"
+                          method="POST" onsubmit="return confirm('Supprimer ce cours ?')" class="inline">
+                        @csrf @method('DELETE')
+                        <button class="text-red-600 hover:underline">🗑 Supprimer</button>
+                    </form>
+                </div>
+
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-md font-semibold">Modules</h4>
+                    <a href="{{ route('formateur.courses.modules.create', $course) }}"
+                       class="text-indigo-600 hover:underline">➕ Ajouter un module</a>
+                </div>
+
+                @if($course->modules->count())
+                    <ul class="list-disc list-inside text-sm text-gray-800 space-y-2">
+                        @foreach($course->modules as $module)
+                            <li>
+                                <div class="flex items-center justify-between">
+                                    <span><strong>{{ $module->title }}</strong></span>
+                                    <div class="flex gap-2">
+                                        <a href="{{ route('formateur.courses.modules.edit', [$course, $module]) }}"
+                                           class="text-blue-600 hover:underline">✏️</a>
+                                        <form action="{{ route('formateur.courses.modules.destroy', [$course, $module]) }}"
+                                              method="POST" onsubmit="return confirm('Supprimer ce module ?')" class="inline">
+                                            @csrf @method('DELETE')
+                                            <button class="text-red-600 hover:underline">🗑</button>
+                                        </form>
+                                        <a href="{{ route('formateur.courses.modules.lessons.create', [$course, $module]) }}"
+                                           class="text-green-600 hover:underline">➕ Leçon</a>
+                                    </div>
+                                </div>
+
+                                @if($module->lessons->count())
+                                    <ul class="list-disc list-inside ml-5 mt-1 text-gray-600">
+                                        @foreach($module->lessons as $lesson)
+                                            <li class="flex items-center justify-between">
+                                                <span>{{ $lesson->title }} ({{ strtoupper($lesson->type) }})</span>
+                                                <div class="flex gap-2">
+                                                    <a href="{{ route('formateur.courses.modules.lessons.edit', [$course, $module, $lesson]) }}"
+                                                       class="text-blue-500 hover:underline">✏️</a>
+                                                    <form action="{{ route('formateur.courses.modules.lessons.destroy', [$course, $module, $lesson]) }}"
+                                                          method="POST" onsubmit="return confirm('Supprimer cette leçon ?')" class="inline">
+                                                        @csrf @method('DELETE')
+                                                        <button class="text-red-500 hover:underline">🗑</button>
+                                                    </form>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p class="ml-5 text-sm text-gray-500">Aucune leçon.</p>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-sm text-gray-500">Aucun module pour ce cours.</p>
+                @endif
+            </div>
+        @empty
+            <p class="text-gray-500">Vous n’avez encore aucun cours. Cliquez sur “Créer un cours” pour commencer.</p>
+        @endforelse
     </div>
 
 

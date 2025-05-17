@@ -32,8 +32,9 @@ class DashboardController extends Controller
     }
 
     if ($user->role === 'formateur') {
-        $formateurCourses = []; // Remplace par Course::where('formateur_id', $user->id)->get();
+        
         $quizzesToCorrect = []; // Remplace par Quiz::where('formateur_id', $user->id)->where('status', 'pending')->get();
+         $formateurCourses = $user->courses()->with('modules.lessons')->get();
     }
 
     if ($user->role === 'apprenant') {
