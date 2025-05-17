@@ -8,23 +8,52 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        // Variables par défaut
-        $userCount = null;
-        $activeCourses = null;
-        $pendingQuizzes = null;
-        $users = null;
+    // Variables selon le rôle
+    $userCount = null;
+    $activeCourses = null;
+    $pendingQuizzes = null;
+    $users = null;
 
-        // Si admin → charger les données nécessaires
-        if ($user->role === 'admin') {
-            $userCount = User::count();
-            $activeCourses = 0; // Remplace par Course::where(...) si tu as un modèle
-            $pendingQuizzes = 0; // Idem pour les quiz
-            $users = User::paginate(10);
-        }
+    $formateurCourses = null;
+    $quizzesToCorrect = null;
 
-        return view('dashboard', compact('user', 'userCount', 'activeCourses', 'pendingQuizzes', 'users'));
+    $apprenantCourses = null;
+    $certificates = null;
+    $progress = null;
+
+    if ($user->role === 'admin') {
+        $userCount = User::count();
+        $activeCourses = 0;
+        $pendingQuizzes = 0;
+        $users = User::paginate(10);
     }
+
+    if ($user->role === 'formateur') {
+        $formateurCourses = []; // Remplace par Course::where('formateur_id', $user->id)->get();
+        $quizzesToCorrect = []; // Remplace par Quiz::where('formateur_id', $user->id)->where('status', 'pending')->get();
+    }
+
+    if ($user->role === 'apprenant') {
+        $apprenantCourses = []; // Ex: $user->courses;
+        $certificates = []; // Ex: $user->certificates;
+        $progress = 0; // Ex: calcul de progression globale
+    }
+
+    return view('dashboard', compact(
+        'user',
+        'userCount',
+        'activeCourses',
+        'pendingQuizzes',
+        'users',
+        'formateurCourses',
+        'quizzesToCorrect',
+        'apprenantCourses',
+        'certificates',
+        'progress'
+    ));
+}
+
 }
